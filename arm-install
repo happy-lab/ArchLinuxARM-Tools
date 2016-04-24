@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Script to automate the steps to install ArchLinux ARM onto a flash card.
+#
+#   - Raspberry-Pi specific at the moment.
+#
+
+set -e
+set -x
+
+device=/dev/sdf
+board=rpi # rpi-2
+
+install_image="ArchLinuxARM-${board}-latest.tar.gz"
+
+{
+echo ,+100M,0x0c,*
+echo ,,,-
+} | sfdisk ${device}
+
+mkfs.vfat ${device}1
+mkfs.ext4 -F ${device}2
+mount ${device}1 ./boot
+mount ${device}2 ./root
+if [ ! -e "${install_image}" ]; then
+    wget http://archlinuxarm.org/os/${install_image}
+fi
+bsdtar -xpf ${install_image} -C ./root
+sync
+mv ./root/boot/* ./boot
+umount ./boot ./root
+eject ${device}

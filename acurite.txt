@@ -1,0 +1,16 @@
+#
+# Configuration so the system can collect data from an AcusRrite Weater Station.
+#
+
+#
+# Install Python USB pacakge.
+#
+
+pip install PyUSB
+pip2 install PyUSB
+
+#
+# Configure 'udev' so non-root user can access an AcuRite Weather Station.
+#
+
+echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="24c0", ATTRS{idProduct}=="0003", SYMLINK="weather" MODE="666",GROUP="users"' > /etc/udev/rules.d/10-local.rules

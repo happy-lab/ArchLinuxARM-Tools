@@ -1,0 +1,52 @@
+#!/usr/bin/python
+#
+# Script to make it easier to paste an OpenSSH Public Key into a serial termainal.
+#
+
+from __future__ import print_function
+
+import sys
+import os
+import argparse
+import traceback
+
+
+def main():
+
+    status = 1
+
+    parser = argparse.ArgumentParser(description='Convert An OpenSSH Public Key for Pasting')
+    parser.add_argument('-k', '--key', action='store', default='rsa')
+    parser.add_argument('-s', '--size', action='store', default=70)
+    arguments = parser.parse_args()
+
+    size = arguments.size
+
+    key_file = os.environ['HOME'] + '/.ssh/id_' + arguments.key + '.pub'
+    with open(key_file, 'r') as f:
+
+        key = f.readline().strip()
+        print(key)
+
+        chunks = []
+        while len(key) > 0:
+            chunks.append(key[0:size])
+            key = key[size:]
+
+        print('( echo ""')
+        for chunk in chunks:
+            print('  echo -n', chunk)
+        print('  echo "" ) >> ./.ssh/authorized_keys')
+
+        status = 0
+
+    return status
+
+if __name__ == '__main__':
+    try:
+        status = main()
+        sys.exit(status)
+    except Exception, e:
+        print(str(e))
+        traceback.print_exc()
+        os._exit(1)

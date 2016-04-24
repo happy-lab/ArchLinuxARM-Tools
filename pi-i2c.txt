@@ -1,0 +1,11 @@
+#
+# Add support for I2C devices on a Raspberry-Pi.
+#
+pacman ${confirm} -S i2c-tools
+echo "i2c_bcm2708" >> /etc/modules-load.d/raspberrypi.conf
+echo "i2c-dev" >> /etc/modules-load.d/raspberrypi.conf
+
+sed -e '/#device_tree_param=i2c_arm=on/s/^#//' < /boot/config.txt > /boot/config.updated
+mv /boot/config.txt /boot/config.orig
+mv /boot/config.updated /boot/config.txt
+

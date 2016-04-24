@@ -1,0 +1,18 @@
+#
+# Configure OpenSprinkler
+#
+cat << /* > /etc/systemd/system/ospi.service
+[Unit]
+Description=Start OpenSprinkler Interval Program
+After=network.target
+
+[Service]
+WorkingDirectory=/root/OSPi
+ExecStart=/usr/bin/python ospi.py
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+/*
+systemctl start ospi   # To make sure there are no errors
+systemctl enable ospi

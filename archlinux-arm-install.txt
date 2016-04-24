@@ -1,0 +1,260 @@
+#
+# Steps to install and configure ArchLinux on an ARM board; tested on:
+#
+#    Beagleboard-XM
+#    BeagleBone Black
+#    Pandaboard
+#    Raspberry-Pi
+#    Raspberry-Pi2
+#
+# Basically, connect the board to a serial cable, then cut-and-paste the
+# following into the terminal program.
+#
+
+#
+# Specify host name.
+#
+hostname='<>'
+
+#
+# Specify wireless configuration.
+#
+wireless_essid='<>'
+wireless_key='<>'
+
+#
+# Establish administative user information.
+#
+uid=<>
+gid=<>
+userid=<>
+comment='<>'
+
+#
+# Remove 'pacman' prompts to simplify installation.
+#
+
+confirm='--noconfirm'
+
+#
+# Set the local time zone.
+#
+timedatectl set-timezone America/Denver
+
+#
+# Remove the sound kernel modules based on the board.
+#
+... See board specific instructions ...
+
+#
+# Configure package manager.
+#
+pacman-key --init
+
+#
+# Perform full system upgrade.
+#
+pacman -Syy
+pacman ${confirm} -Suu
+
+#
+# Remove unused packages to reduce flash use and boot time.
+#
+pacman ${confirm} -R pciutils lvm2 jfsutils mdadm reiserfsprogs s-nail xfsprogs cryptsetup device-mapper thin-provisioning-tools
+
+#
+# Install useful packages.
+#
+pacman ${confirm} -S vim
+
+#
+# Configure the NTP daemon.
+#
+pacman ${confirm} -S ntp
+systemctl enable ntpd
+
+#
+# Add support for i2c devices, if needed.
+#
+... See board specific instructions ...
+
+#
+# Install Python 3 and 2
+#
+pacman ${confirm} -S python python-setuptools python-pip
+pacman ${confirm} -S python2 python2-setuptools python2-pip
+
+#
+# Install 'sudo' and let members of the 'wheel' group execute without a password.
+#
+pacman ${confirm} -S sudo
+sed -e '/# %wheel .* NOPASSWD: ALL/s/^# //' < /etc/sudoers > /etc/sudoers.updated
+mv /etc/sudoers /etc/sudoers.orig
+mv /etc/sudoers.updated /etc/sudoers
+
+#
+# Allow root access via ssh but only via public keys.
+#
+sed -e '/#PermitRootLogin prohibit-password/s/^#//' < /etc/ssh/sshd_config > /etc/ssh/sshd_config.updated
+mv /etc/ssh/sshd_config /etc/ssh/sshd_config.orig
+mv /etc/ssh/sshd_config.updated /etc/ssh/sshd_config
+
+#
+# Save public key into the root account.
+#
+mkdir .ssh
+chmod 700 .ssh
+touch .ssh/authorized_keys
+chmod 600 .ssh/authorized_keys
+cat > .ssh/authorized_keys
+
+#
+# Add an administrative-type user
+#
+useradd -c "${comment}" -g users -G wheel -m -u ${uid} ${userid}
+cp -a .ssh /home/${userid}
+chown -R ${uid}:users /home/${userid}/.ssh
+
+#
+# Set host name.
+#
+echo ${hostname} > /etc/hostname
+
+#
+# Configure /etc/hosts for systems on the local network.
+#
+mv /etc/hosts /etc/hosts.orig
+mv ./hosts /etc
+
+#
+# Configure static wired IP address.
+#
+mv /etc/systemd/network/eth0.network /etc/systemd/network/eth0.orig
+cat << /* > /etc/systemd/network/eth0.network
+[Match]
+Name=eth0
+
+[Network]
+Address=192.168.0.217
+Gateway=192.168.0.1
+DNS=192.168.0.1
+/*
+
+#
+# Configure network wireless IP address.
+#
+pacman ${confirm} -S wpa_supplicant crda
+
+sed -e '/#WIRELESS_REGDOM="US"/s/#//' < /etc/conf.d/wireless-regdom > /etc/conf.d/wireless-regdom.updated
+mv /etc/conf.d/wireless-regdom /etc/conf.d/wireless-regdom.orig
+mv /etc/conf.d/wireless-regdom.updated /etc/conf.d/wireless-regdom
+
+#
+# Setup wireless for the systemd.network service; modify as needed.
+#
+cat << /* > /etc/systemd/network/wlan0.network
+[Match]
+Name=wlan0
+[Network]
+DHCP=yes
+#DNS=192.168.1.1
+#Address=192.168.1.2/24
+#Gateway=192.168.1.1
+/*
+
+cat << /* > /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+ctrl_interface=/var/run/wpa_supplicant
+eapol_version=1
+ap_scan=1
+fast_reauth=1
+
+/*
+wpa_passphrase ${wireless_essid} ${wireless_key} >> /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+
+systemctl enable wpa_supplicant@wlan0.service
+
+#
+# Setup wireless for netctl environments - Only RealTek devices.
+#
+#         RealTek issues - https://aur.archlinux.org/packages/8192cu-dkms/
+#
+cd /etc/netctl
+# install -m640 examples/wireless-wpa-static wireless-home
+touch /etc/netctl/wireless-home
+chmod 640 /etc/netctl/wireless-home
+cat << /* > /etc/netctl/wireless-home
+Description='WPA wireless network at the house'
+Interface=wlan0
+Connection=wireless
+
+Security=wpa
+IP=dhcp
+
+ESSID=${wireless_essid}
+Key=${wireless_key}
+#Hidden=yes
+# Set a priority for automatic profile selection
+#Priority=10
+/*
+
+netctl start wireless-home  # To test the wireless connection
+netctl enable wireless-home # To start wireless connection at boot time
+netctl disable eth0         # To not start wired connection at boot time
+
+#
+# Change root file system to not update access times.
+#
+#    NOT READY FOR PRIMETIME YET.
+#
+#cat << /* >> /etc/fstab
+#/dev/mmcblk0p1  /       ext4    rw,noatime,nodiratime 0         0
+#/*
+
+#
+# Add /opt/vc/bin to PATH environmental variables; Raspberry-Pi only..
+#
+touch .profile
+chmod a+x .profile
+cat << /* > .profile
+#!/bin/sh
+export PATH=${PATH}:/opt/vc/bin
+/*
+
+#
+# Support 'avahi'
+#
+pacman ${confirm} -S avahi nss-mdns
+sed \
+	-e '/#disallow-other-stacks/s/no/yes/' \
+	-e '/#disallow-other-stacks/s/^#//' \
+    < /etc/avahi/avahi-daemon.conf > /etc/avahi/avahi-daemon.updated
+mv /etc/avahi/avahi-daemon.conf /etc/avahi/avahi-daemon.orig
+mv /etc/avahi/avahi-daemon.updated /etc/avahi/avahi-daemon.conf
+sed \
+    -e '/^hosts:/s/files dns/file mdns dns/' \
+    < /etc/nsswitch.conf > /etc/nsswitch.updated
+mv /etc/nsswitch.conf /etc/nsswitch.orig
+mv /etc/nsswitch.updated /etc/nsswitch.conf
+
+systemctl enable avahi-daemon.service
+
+#
+# Configure NFS
+#
+pacman ${confirm} -S nfs-utils autofs
+
+sed -e '/^.net.*hosts/s/$/	--timeout=60,nfsvers=3/' < /etc/autofs/auto.master > /etc/autofs/auto.master.updated
+mv /etc/autofs/auto.master /etc/autofs/auto.master.orig
+mv /etc/autofs/auto.master.updated /etc/autofs/auto.master
+# XXX - Uncomment mount_nfs_default_protocol = 3 in /etc/autofs/autofs.conf
+
+systemctl enable rpcbind
+systemctl enable autofs
+
+systemctl enable nfs-client.target
+systemctl start nfs-client.target
+
+#
+# Restart the system.
+#
+reboot

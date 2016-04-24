@@ -1,0 +1,14 @@
+#
+# Remove sound support for the Raspberry-Pi system.
+#
+
+sed -s '/snd-bcm2835/d' < /etc/modules-load.d/raspberrypi.conf > /etc/modules-load.d/raspberrypi.tmp  
+mv /etc/modules-load.d/raspberrypi.conf /etc/modules-load.d/raspberrypi.orig
+mv /etc/modules-load.d/raspberrypi.tmp /etc/modules-load.d/raspberrypi.conf
+
+cat << /* > /etc/modprobe.d/nosnd.conf
+blacklist snd_bcm2835
+blacklist snd_pcm
+blacklist snd_timer 
+blacklist snd
+/*

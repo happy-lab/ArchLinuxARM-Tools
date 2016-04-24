@@ -1,0 +1,7 @@
+#
+# Prevent the RealTec USB wireless donglase from entering power saving mode
+#
+
+cat << /* > /etc/modprobe.d/8192cu.conf
+options 8192cu rtw_power_mgnt=0
+/*

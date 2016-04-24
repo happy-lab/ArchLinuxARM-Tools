@@ -1,0 +1,34 @@
+#
+# Configuration for using Raspberry Pi's camera.
+#
+
+#
+# Fix board configuration for a camera module
+#
+
+sed \
+    -e '\$agpu_mem=64' \
+    -e '\$astart_file=start_x.elf' \
+    -e '\$afixup_file=fixup_x.dat' \
+    < /boot/config.txt > /boot/config.updated
+mv /boot/config.txt     /boot/config.orig
+mv /boot/config.updated /boot/config.txt
+
+#
+# Video for Linux camera support, if needed.
+#
+
+cat << /* > /etc/modules-load.d/rpi-camera.conf
+bcm2835-v4l2
+/*
+
+#
+# Reduce memory available to GPU in case it decides to use memory
+#
+#     The following appears to no longer be needed.
+#
+
+# sed \
+#     -e '/gpu_mem_512=316/s/316/48/' \
+#     -e '/gpu_mem_256=128/s/128/48/' \
+#     < /boot/config.txt > /boot/config.tmp

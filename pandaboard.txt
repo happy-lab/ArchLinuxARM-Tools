@@ -1,0 +1,30 @@
+#
+# Pandaboard specific configuration chagnes.
+#
+
+#
+# Remove the sound kernel modules
+#
+
+cat << /* > /etc/modprobe.d/nosnd.conf
+blacklist snd_soc_tas5713
+blacklist snd_soc_pcm512x
+blacklist snd_soc_wm8804
+blacklist snd_soc_bcm2708_i2s
+blacklist snd_soc_core
+blacklist snd_compress
+blacklist snd_pcm
+blacklist snd_page_alloc
+blacklist snd_timer 
+blacklist snd
+/*
+
+#
+# Remove character event and joystick support, if needed.
+#
+
+cat << /* > /etc/modprobe.d/noinput.conf
+blacklist evdev
+blacklist joydev
+blacklist mousedev
+/*

@@ -1,0 +1,26 @@
+#
+# Add support for DS1307 Real Time Clock.
+#
+#     http://blog.lemoneerlabs.com/post/time-y-wimey-stuff
+#
+echo "rtc_ds1307" >> /etc/modules-load.d/raspberrypi.conf
+cat << /* > /usr/lib/systemd/scripts/rtc
+#!/bin/sh
+echo ds1307 0x68 >/sys/bus/i2c/devices/i2c-1/new_device
+/usr/bin/hwclock -f /dev/rtc0 -s
+/*
+chmod 755 /usr/lib/systemd/scripts/rtc
+cat << /* > /etc/systemd/system/rtc.service
+[Unit]
+Description=RTC clock
+Before=netctl-auto@wireless-home.service
+ 
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/rtc
+ 
+[Install]
+WantedBy=multi-user.target
+/*
+systemctl start rtc   # To make sure there are no errors
+systemctl enable rtc

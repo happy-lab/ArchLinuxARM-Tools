@@ -6,6 +6,7 @@ mv /boot/config.txt /boot/config.orig
 echo "gpu_mem=128" >> /boot/config.orig
 echo "start_file=start_x.elf" >> /boot/config.orig
 echo "fixup_file=fixup_x.dat" >> /boot/config.orig
+echo "disable_camera_led=1" >> /boot/config.orig
 mv /boot/config.updated /boot/config.txt
 
 echo "bcm2835-v4l2" > /etc/modules-load.d/rpi-camera.conf

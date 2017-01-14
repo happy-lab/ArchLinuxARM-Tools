@@ -231,7 +231,7 @@ sed \
 mv /etc/avahi/avahi-daemon.conf /etc/avahi/avahi-daemon.orig
 mv /etc/avahi/avahi-daemon.updated /etc/avahi/avahi-daemon.conf
 sed \
-    -e '/^hosts:/s/files dns/file mdns dns/' \
+    -e '/^hosts:/s/dns/mdns dns/' \
     < /etc/nsswitch.conf > /etc/nsswitch.updated
 mv /etc/nsswitch.conf /etc/nsswitch.orig
 mv /etc/nsswitch.updated /etc/nsswitch.conf
@@ -253,6 +253,14 @@ systemctl enable autofs
 
 systemctl enable nfs-client.target
 systemctl start nfs-client.target
+
+#
+# Disable console blanking, if wanted
+#
+
+sed -e '/console=tty1/s/console=tty1/console=tty1 consoleblank=0/' < /boot/cmd.txt > /boot/cmd.updated
+mv /boot/cmd.txt /boot/cmd.orig
+mv /boot/cmd.updated /boot/cmd.txt
 
 #
 # Restart the system.

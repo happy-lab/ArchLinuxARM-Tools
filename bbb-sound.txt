@@ -1,0 +1,18 @@
+#
+# Remove sound support for the BeagleBone Black system.
+#
+
+cat << /* > /etc/modprobe.d/nosnd.conf
+blacklist snd_soc_simple_card
+blacklist snd_soc_simple_card_utils
+blacklist snd_soc_hdmi_codec
+blacklist snd_soc_davinci_mcasp
+blacklist snd_soc_map
+blacklist snd_soc_edma
+blacklist snd_soc_core
+blacklist snd_pcm_dmaengine
+blacklist snd_pcm
+blacklist snd_timer
+blacklist snd
+blacklist soundcore
+/*

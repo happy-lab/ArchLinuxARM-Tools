@@ -60,7 +60,7 @@ pacman ${confirm} -Suu
 #
 # Remove unused packages to reduce flash use and boot time.
 #
-pacman ${confirm} -R pciutils lvm2 jfsutils mdadm reiserfsprogs s-nail xfsprogs cryptsetup device-mapper thin-provisioning-tools
+pacman ${confirm} -R pciutils lvm2 jfsutils mdadm reiserfsprogs s-nail xfsprogs thin-provisioning-tools
 
 #
 # Install useful packages.

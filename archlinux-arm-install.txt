@@ -235,6 +235,7 @@ sed \
     < /etc/nsswitch.conf > /etc/nsswitch.updated
 mv /etc/nsswitch.conf /etc/nsswitch.orig
 mv /etc/nsswitch.updated /etc/nsswitch.conf
+cp -a /usr/share/doc/avahi/ssh.service /etc/avahi/services/
 
 systemctl enable avahi-daemon.service
 

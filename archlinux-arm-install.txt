@@ -6,9 +6,11 @@
 #    Pandaboard
 #    Raspberry-Pi
 #    Raspberry-Pi2
+#    Raspberry-Pi3
+#    ESPRESSObin
 #
-# Basically, connect the board to a serial cable, then cut-and-paste the
-# following into the terminal program.
+# Basically, connect the board to a serial cable or Ethernet and then
+# cut-and-paste the following into the terminal program.
 #
 
 #
@@ -235,7 +237,7 @@ sed \
     < /etc/nsswitch.conf > /etc/nsswitch.updated
 mv /etc/nsswitch.conf /etc/nsswitch.orig
 mv /etc/nsswitch.updated /etc/nsswitch.conf
-cp -a /usr/share/doc/avahi/ssh.service /etc/avahi/services/
+cp -a /usr/share/doc/avahi/ssh.service /etc/avahi/services
 
 systemctl enable avahi-daemon.service
 

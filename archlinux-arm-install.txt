@@ -7,6 +7,7 @@
 #    Raspberry-Pi
 #    Raspberry-Pi2
 #    Raspberry-Pi3
+#    Raspberry-Zero
 #    ESPRESSObin
 #
 # Basically, connect the board to a serial cable or Ethernet and then
@@ -52,6 +53,13 @@ timedatectl set-timezone America/Denver
 # Configure package manager.
 #
 pacman-key --init
+
+#
+# Enable package signing and import signing keys.
+#
+#     https://archlinuxarm.org/forum/viewtopic.php?f=3&t=12797
+#
+pacman-key --init && pacman-key --populate archlinuxarm
 
 #
 # Perform full system upgrade.
